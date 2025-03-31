@@ -19,6 +19,7 @@
     <orderEntry type="jdk" jdkName="Python 3.13 (WFD_Assignment)" jdkType="Python SDK" />
     <orderEntry type="sourceFolder" forTests="false" />
     <orderEntry type="module" module-name="WFD_Assignment2" />
+    <orderEntry type="module" module-name="Assignment1" />
   </component>
   <component name="TemplatesService">
     <option name="TEMPLATE_CONFIGURATION" value="Django" />
