@@ -7,7 +7,7 @@ class Applicant(models.Model):
     phone = models.CharField(max_length=10)
     image = models.ImageField(upload_to="")
     gender = models.CharField(max_length=10)
-    type = models.CharField(max_length=15)
+    type = models.CharField(max_length=20)
 
     def __str__(self):
         return self.user.first_name
