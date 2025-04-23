@@ -1,25 +1,21 @@
+from idlelib.pathbrowser import PathBrowser
 
 from django.urls import path
 
 from . import views
 
 urlpatterns = [
-
+    path ('', views.posts_list, name='posts_list'),
     path('',views.home,name='index' ),
-    path('home/',views.home,name='home' ),
-
-    path('register/',views.register,name='register' ),
+    path('',views.home,name='homepage' ),
+    path('register/',views.register_view,name='register' ),
     path('profile/',views.profile,name='profile' ),
-    path('logout/',views.login, name='logout' ),
-
-    path('index/',views.login, name='login' ),
-    path ('job_list/',views.login, name='job_list' ),
+    path('logout/',views.logout, name='logout' ),
+    path('login/',views.login_view, name='login' ),
     path('about/',views.about,name='about' ),
     path('contact/',views.contact,name='contact' ),
     path('company/',views.company,name='company' ),
     path('job_create/',views.job_create,name='job_create' ),
     path('applicant/',views.applicant,name='applicant' ),
-    path('job/',views.job,name='job' ),
-
 
 ]
