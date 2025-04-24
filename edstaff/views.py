@@ -15,7 +15,7 @@ def home(request):
 
 def user_login(request):
         if request.user.is_authenticated:
-            return redirect("/user_signup")
+            return redirect("/user_login")
         else:
             if request.method == "POST":
                 username = request.POST['username']
@@ -26,11 +26,11 @@ def user_login(request):
                     user1 = Applicant.objects.get(user=user)
                     if user1.type == "applicant":
                         login(request, user)
-                        return redirect("/user_homepage")
+                        return redirect("/user_login")
                 else:
                     thank = True
                     return render(request, "registration/user_login.html", {"thank": thank})
-        return render(request, "registration/user_signup.html")
+        return render(request, "registration/user_login.html")
 
 
 
@@ -151,13 +151,12 @@ def company_homepage(request):
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
         phone = request.POST['phone']
-        gender = request.POST['gender']
+
 
         company.user.email = email
         company.user.first_name = first_name
         company.user.last_name = last_name
         company.phone = phone
-        company.gender = gender
         company.save()
         company.user.save()
 
@@ -344,7 +343,6 @@ def user_signup(request):
             password1 = request.POST['password1']
             password2 = request.POST['password2']
             phone = request.POST['phone']
-            gender = request.POST['gender']
             image = request.FILES['image']
 
             if password1 != password2:
@@ -353,7 +351,7 @@ def user_signup(request):
 
             user = User.objects.create_user(first_name=first_name, last_name=last_name, username=username,
                                             password=password1)
-            applicants = Applicant.objects.create(user=user, phone=phone, gender=gender, image=image, type="applicant")
+            applicants = Applicant.objects.create(user=user, phone=phone, image=image, type="applicant")
             user.save()
             applicants.save()
             return render(request, "registration/user_login.html", {'alert': True})
@@ -372,7 +370,6 @@ def admin_signup(request):
         password1 = request.POST['password1']
         password2 = request.POST['password2']
         phone = request.POST['phone']
-        gender = request.POST['gender']
         image = request.FILES['image']
 
         if password1 != password2:
@@ -380,7 +377,7 @@ def admin_signup(request):
             return redirect('/signup')
         user = User.objects.create_user(first_name=first_name, last_name=last_name, username=username,
                                         password=password1)
-        applicants = Applicant.objects.create(user=user, phone=phone, gender=gender, image=image, type="applicant")
+        applicants = Applicant.objects.create(user=user, phone=phone, image=image, type="applicant")
         user.save()
         applicants.save()
         return render(request, "registration/admin_login.html")
