@@ -14,16 +14,25 @@ class Applicant(models.Model):
 
 
 class Company(models.Model):
+    STATUS_PENDING = 'pending'
+    STATUS_APPROVED = 'approved'
+    STATUS_REJECTED = 'rejected'
+
+    STATUS_CHOICES = [
+        ('pending', 'Pending'),
+        ('approved', 'Approved'),
+        ('rejected', 'Rejected'),
+    ]
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     phone = models.CharField(max_length=10)
-    image = models.ImageField(upload_to="")
+    image = models.ImageField(upload_to= 'company_logos/')
     gender = models.CharField(max_length=10)
-    type = models.CharField(max_length=15)
-    status = models.CharField(max_length=20)
+    type = models.CharField(max_length=15,default='company')
+    status = models.CharField(max_length=20,choices=STATUS_CHOICES, default='pending')
     company_name = models.CharField(max_length=100)
 
     def __str__(self):
-        return self.user.username
+        return self.companty_name
 
 
 class Job(models.Model):

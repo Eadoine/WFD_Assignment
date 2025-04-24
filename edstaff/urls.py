@@ -2,12 +2,12 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.index, name="index"),
+    path("", views.index, name="edstaff/index"),
     # for users or applicants
     path("user_login/", views.user_login, name="user_login"),
-    path("signup.html/", views.signup, name="signup.html"),
     path("user_homepage/", views.user_homepage, name="user_homepage"),
-    path("logout/", views.logout, name="logout"),
+    path("user_signup/", views.user_signup, name="user_signup"),
+    path("logout_view/", views.logout_view, name="logout"),
     path("all_jobs/", views.all_jobs, name="all_jobs"),
     path("job_detail/<int:myid>/", views.job_detail, name="job_detail"),
     path("job_apply/<int:myid>/", views.job_apply, name="job_apply"),

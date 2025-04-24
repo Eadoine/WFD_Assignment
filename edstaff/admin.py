@@ -1,5 +1,6 @@
 from django.contrib import admin
-from .models import Job, AdminActivityLog
+from .models import *
+
 
 @admin.register(Job)
 class JobAdmin(admin.ModelAdmin):
@@ -20,5 +21,17 @@ class JobAdmin(admin.ModelAdmin):
         )
         super().delete_model(request, obj)
 
+        admin.site.register(Applicant)
+        admin.site.register(Company)
+        admin.site.register(Job)
+        admin.site.register(Application)
+        admin.site.register(Notification)
+        admin.site.register(AdminActivityLog)
 
+@admin.register(Company)
+class CompanyAdmin(admin.ModelAdmin):
+    list_display = ('company_name', 'user', 'status')
+    list_filter = ('status',)
+    search_fields = ('company_name', 'user__username')
+    list_editable = ('status',)
 # Register your models here.

@@ -1,17 +1,25 @@
-{% load static %}
+<!--
+    This is the base template for my EduRecruit project. It includes the basic HTML structure and links to Bootstrap CSS and JS.
+    The template uses Jinja2 templating engine to allow for dynamic content rendering.-->
+
 <!DOCTYPE html>
+
 <html lang="en">
 <head>
+
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
-    <title>{% block title %}Edstaff{% endblock %}</title>
-    <link rel="stylesheet" type="text/css" href="https://bootswatch.com/5/flatly/bootstrap.min.css">
-    <script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
+
+    <title>{%block title %} EduRecruit{% endblock %}</title>
+
+<link rel ="stylesheet" type="text/css" href="https://bootswatch.com/5/flatly/bootstrap.min.css">
+<script src="https://code.jquery.com/jquery-3.4.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
+
 </head>
 
+
 <body>
-<nav class="navbar navbar-expand-lg navbar-dark bg-primary">
 <nav class="navbar navbar-expand-lg sticky-top navbar-dark">
       <div class="container-fluid w-50">
         <a class="navbar-brand" href="#">EduRecruit</a>
@@ -22,7 +30,7 @@
           <ul class="navbar-nav me-auto mb-2 mb-lg-0">
             {% if not request.user.is_authenticated %}
             <li class="nav-item">
-              <a class="nav-link {% block home %} {% endblock %}" aria-current="page" href="/static">Home</a>
+              <a class="nav-link {% block home %} {% endblock %}" aria-current="page" href="/">Home</a>
             </li>
             <li class="nav-item">
               <a class="nav-link {% block user_login %} {% endblock %}" href="/user_login/">User Login</a>
@@ -42,20 +50,5 @@
         </div>
       </div>
     </nav>
-</nav>
-
-
+{% block content %}{% endblock %}
 </body>
-
-<div class="container-fluid mt-2">
-    <img src="{% static 'images/recruitment Vector.png' %}" alt="recruitment scene" width="100%" height="450px">
-</div>
-    <div class="container-fluid mt-2" style="background-color: #4f868c; width: 100%;">
-        <div class="row">
-            <div class="col-md-4">
-                <h3 style="color: aliceblue;">Contact Us</h3>
-                <p style="color: aliceblue">Email:&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;EduRecruit@gmail.com</p>
-                <p style="color: aliceblue">Mobile No.:&nbsp;&nbsp;083 88876583</p>
-            </div>
-        </div>
-    </div>

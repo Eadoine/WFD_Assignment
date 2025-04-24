@@ -1,29 +1,22 @@
+import django.contrib.auth
 from datetime import date
-from django.contrib.auth import login, authenticate, logout
-import django.contrib.auth.forms
+from django.contrib import messages
+from django.contrib.auth import login, authenticate
+from django.contrib.auth import logout as auth_logout
 from django.core.checks import messages
 from django.shortcuts import render, redirect
+from django.urls import reverse
+from .models import Company
 from edstaff.models import *
-from datetime import  date
 
 
 def home(request):
-    return render(request, 'edstaff/index.html')
-def edstaff_list(request):
-    return render(request, '')
-def contact(request):
-    return render(request, 'edstaff/contact.html')
-def company(request):
-    return render(request, 'edstaff/company.html')
-def applicant(request):
-    return render(request, 'edstaff/applicant.html')
-def profile(request):
-    return render(request, 'edstaff/profile.html')
-def job_create(request):
-    return render(request, 'edstaff/job_create.html')
-def about(request):
-    return render(request, 'edstaff/about.html')
-def signup(request):
+    return render(request, 'edstaff/basic.html')
+
+
+
+
+def user_signup(request):
     if request.method == "POST":
         username = request.POST['email']
         first_name = request.POST['first_name']
@@ -36,15 +29,15 @@ def signup(request):
 
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
-            return redirect('/signup')
+            return redirect('/user_signup')
 
         user = User.objects.create_user(first_name=first_name, last_name=last_name, username=username,
                                         password=password1)
         applicants = Applicant.objects.create(user=user, phone=phone, gender=gender, image=image, type="applicant")
         user.save()
         applicants.save()
-        return render(request, "user_login.html")
-    return render(request, "signup.html")
+        return render(request, "edstaff/user_login.html")
+    return render(request, "edstaff/user_signup.html")
 
 
 def login_view(request):
@@ -56,13 +49,7 @@ def login_view(request):
             return redirect("users:login")
     else:
         form = django.contrib.auth.forms.AuthenticationForm()
-    return render(request, 'users/login.html', {'form': form})
-
-
-def posts_list(request):
-
-    return render (request, 'posts/posts_list.html')
-
+    return render(request, 'edstaff/login.html', {'form': form})
 
 def index(request):
     return render(request, 'edstaff/index.html')
@@ -82,7 +69,7 @@ def user_login(request):
                     return redirect("/user_homepage")
             else:
                 thank = True
-                return render(request, "user_login.html", {"thank": thank})
+                return render(request, "edstaff/user_login.html", {"thank": thank})
     return render(request, 'edstaff/user_login.html')
 
 
@@ -112,13 +99,17 @@ def user_homepage(request):
         except:
             pass
         alert = True
-        return render(request, "user_homepage.html", {'alert': alert})
-    return render(request, "user_homepage.html", {'applicant': applicant})
+        return render(request, "edstaff/user_homepage.html", {'alert': alert})
+    return render(request, "edstaff/user_homepage.html", {'applicant': applicant})
 
 
-def logout(request):
-    logout(request)
-    return redirect('/')
+def logout_view(request):
+    if request.user.is_authenticated:
+        auth_logout(request)  # <- actually logs the user out
+        return redirect('edstaff/index')  # redirect to login or landing page
+    else:
+        return redirect('edstaff/index')
+
 
 
 def all_jobs(request):
@@ -128,12 +119,12 @@ def all_jobs(request):
     data = []
     for i in apply:
         data.append(i.job.id)
-    return render(request, "all_jobs.html", {'jobs': jobs, 'data': data})
+    return render(request, "edstaff/all_jobs.html", {'jobs': jobs, 'data': data})
 
 
 def job_detail(request, myid):
     job = Job.objects.get(id=myid)
-    return render(request, "job_detail.html", {'job': job})
+    return render(request, "edstaff/job_detail.html", {'job': job})
 
 
 def job_apply(request, myid):
@@ -144,62 +135,69 @@ def job_apply(request, myid):
     date1 = date.today()
     if job.end_date < date1:
         closed = True
-        return render(request, "job_apply.html", {'closed': closed})
+        return render(request, "edstaff/job_apply.html", {'closed': closed})
     elif job.start_date > date1:
         notopen = True
-        return render(request, "job_apply.html", {'notopen': notopen})
+        return render(request, "edstaff/job_apply.html", {'notopen': notopen})
     else:
         if request.method == "POST":
             resume = request.FILES['resume']
             Application.objects.create(job=job, company=job.company, applicant=applicant, resume=resume,
                                        apply_date=date.today())
             alert = True
-            return render(request, "job_apply.html", {'alert': alert})
-    return render(request, "job_apply.html", {'job': job})
+            return render(request, "edstaff/job_apply.html", {'alert': alert})
+    return render(request, "edstaff/job_apply.html", {'job': job})
 
 
 def company_signup(request):
     if request.method == "POST":
         username = request.POST['username']
-        email = request.POST['email']
+        email = request.POST.get['email']
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
         password1 = request.POST['password1']
         password2 = request.POST['password2']
         phone = request.POST['phone']
-        gender = request.POST['gender']
-        image = request.FILES['image']
+
         company_name = request.POST['company_name']
 
         if password1 != password2:
+
             messages.error(request, "Passwords do not match.")
-            return redirect('/signup')
+
+            return redirect(reverse('/signup'))
 
         user = User.objects.create_user(first_name=first_name, last_name=last_name, email=email, username=username,
                                         password=password1)
-        company = Company.objects.create(user=user, phone=phone, gender=gender, image=image, company_name=company_name,
+        company = Company.objects.create(user=user, phone=phone,  company_name=company_name,
                                          type="company", status="pending")
         user.save()
         company.save()
-        return render(request, "company_login.html")
-    return render(request, "company_signup.html")
+        return render(request, "edstaff/company_login.html")
+    return render(request, "edstaff/company_signup.html")
 
 
 def company_login(request):
-    if request.method == "POST":
-        username = request.POST['username']
-        password = request.POST['password']
-        user = authenticate(username=username, password=password)
+        if request.method == "POST":
+            username = request.POST['username']
+            password = request.POST['password']
+            user = authenticate(username=username, password=password)
 
-        if user is not None:
-            user1 = Company.objects.get(user=user)
-            if user1.type == "company" and user1.status != "pending":
-                login(request, user)
-                return redirect("/company_homepage")
-        else:
-            alert = True
-            return render(request, "company_login.html", {"alert": alert})
-    return render(request, "company_login.html")
+            if user:
+                company = Company.objects.filter(user=user).first()
+                if company and company.type == "company":
+                    if company.status == Company.STATUS_APPROVED:
+                        login(request, user)
+                        messages.success(request, "Successfully logged in.")
+                        return redirect("/company_homepage")
+                    else:
+                        messages.warning(request, "Your account is still pending approval.")
+                else:
+                    messages.error(request, "Invalid company account.")
+            else:
+                messages.error(request, "Invalid username or password.")
+
+        return render(request, "edstaff/company_login.html")
 
 
 def company_homepage(request):
@@ -228,8 +226,8 @@ def company_homepage(request):
         except:
             pass
         alert = True
-        return render(request, "company_homepage.html", {'alert': alert})
-    return render(request, "company_homepage.html", {'company': company})
+        return render(request, "edstaff/company_homepage.html", {'alert': alert})
+    return render(request, "edstaff/company_homepage.html", {'company': company})
 
 
 def add_job(request):
@@ -251,8 +249,8 @@ def add_job(request):
                                  description=description, creation_date=date.today())
         job.save()
         alert = True
-        return render(request, "add_job.html", {'alert': alert})
-    return render(request, "add_job.html")
+        return render(request, "edstaff/add_job.html", {'alert': alert})
+    return render(request, "edstaff/add_job.html")
 
 
 def job_list(request):
@@ -260,7 +258,7 @@ def job_list(request):
         return redirect("/company_login")
     companies = Company.objects.get(user=request.user)
     jobs = Job.objects.filter(company=companies)
-    return render(request, "job_list.html", {'jobs': jobs})
+    return render(request, "edstaff/job_list.html", {'jobs': jobs})
 
 
 def edit_job(request, myid):
@@ -292,8 +290,8 @@ def edit_job(request, myid):
             job.end_date = end_date
             job.save()
         alert = True
-        return render(request, "edit_job.html", {'alert': alert})
-    return render(request, "edit_job.html", {'job': job})
+        return render(request, "edstaff/edit_job.html", {'alert': alert})
+    return render(request, "edstaff/edit_job.html", {'job': job})
 
 
 def company_logo(request, myid):
@@ -305,14 +303,14 @@ def company_logo(request, myid):
         job.image = image
         job.save()
         alert = True
-        return render(request, "company_logo.html", {'alert': alert})
-    return render(request, "company_logo.html", {'job': job})
+        return render(request, "edstaff/company_logo.html", {'alert': alert})
+    return render(request, "edstaff/company_logo.html", {'job': job})
 
 
 def all_applicants(request):
     company = Company.objects.get(user=request.user)
     application = Application.objects.filter(company=company)
-    return render(request, "all_applicants.html", {'application': application})
+    return render(request, "edstaff/all_applicants.html", {'application': application})
 
 
 def admin_login(request):
@@ -326,14 +324,14 @@ def admin_login(request):
             return redirect("/all_companies")
         else:
             alert = True
-            return render(request, "admin_login.html", {"alert": alert})
-    return render(request, "admin_login.html")
+            return render(request, "edstaff/admin_login.html", {"alert": alert})
+    return render(request, "edstaff/admin_login.html")
 
 def view_applicants(request):
     if not request.user.is_authenticated:
         return redirect("/admin_login")
     applicants = Applicant.objects.all()
-    return render(request, "view_applicants.html", {'applicants': applicants})
+    return render(request, "edstaff/view_applicants.html", {'applicants': applicants})
 
 def delete_applicant(request, myid):
     if not request.user.is_authenticated:
@@ -348,27 +346,27 @@ def pending_companies(request):
     if not request.user.is_authenticated:
         return redirect("/admin_login")
     companies = Company.objects.filter(status="pending")
-    return render(request, "pending_companies.html", {'companies': companies})
+    return render(request, "edstaff/pending_companies.html", {'companies': companies})
 
 def accepted_companies(request):
     if not request.user.is_authenticated:
         return redirect("/admin_login")
     companies = Company.objects.filter(status="Accepted")
-    return render(request, "accepted_companies.html", {'companies': companies})
+    return render(request, "edstaff/accepted_companies.html", {'companies': companies})
 
 
 def rejected_companies(request):
     if not request.user.is_authenticated:
         return redirect("/admin_login")
     companies = Company.objects.filter(status="Rejected")
-    return render(request, "rejected_companies.html", {'companies': companies})
+    return render(request, "edstaff/rejected_companies.html", {'companies': companies})
 
 
 def all_companies(request):
     if not request.user.is_authenticated:
         return redirect("/admin_login")
     companies = Company.objects.all()
-    return render(request, "all_companies.html", {'companies': companies})
+    return render(request, "edstaff/all_companies.html", {'companies': companies})
 
 def change_status(request , myid):
     if not request.user.is_authenticated:
@@ -379,8 +377,8 @@ def change_status(request , myid):
         company.status = status
         company.save()
         alert = True
-        return render(request, "change_status.html", {'alert': alert})
-    return render(request, "change_status.html", {'company': company})
+        return render(request, "edstaff/change_status.html", {'alert': alert})
+    return render(request, "edstaff/change_status.html", {'company': company})
 
 
 
@@ -390,7 +388,5 @@ def delete_company(request, myid):
     company = User.objects.filter(id=myid)
     company.delete()
     return redirect("/all_companies")
-
-
 
 
