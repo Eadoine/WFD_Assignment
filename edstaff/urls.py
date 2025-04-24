@@ -2,16 +2,17 @@ from django.urls import path
 from . import views
 
 urlpatterns = [
-    path("", views.index, name="edstaff/index"),
-    # for users or applicants
+    path("", views.index, name="index"),
+    # User
     path("user_login/", views.user_login, name="user_login"),
+    path("signup/", views.signup, name="signup"),
     path("user_homepage/", views.user_homepage, name="user_homepage"),
-    path("user_signup/", views.user_signup, name="user_signup"),
-    path("logout_view/", views.logout_view, name="logout"),
+    path("logout/", views.logout, name="logout"),
     path("all_jobs/", views.all_jobs, name="all_jobs"),
     path("job_detail/<int:myid>/", views.job_detail, name="job_detail"),
     path("job_apply/<int:myid>/", views.job_apply, name="job_apply"),
-    # for Company
+
+    # Company
     path("company_signup/", views.company_signup, name="company_signup"),
     path("company_login/", views.company_login, name="company_login"),
     path("company_homepage/", views.company_homepage, name="company_homepage"),
@@ -20,7 +21,8 @@ urlpatterns = [
     path("edit_job/<int:myid>/", views.edit_job, name="edit_job"),
     path("company_logo/<int:myid>/", views.company_logo, name="company_logo"),
     path("all_applicants/", views.all_applicants, name="all_applicants"),
-    # for admin
+
+    # admin
     path("admin_login/", views.admin_login, name="admin_login"),
     path("view_applicants/", views.view_applicants, name="view_applicants"),
     path("delete_applicant/<int:myid>/", views.delete_applicant, name="delete_applicant"),

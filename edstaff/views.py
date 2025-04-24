@@ -1,17 +1,17 @@
-import django.contrib.auth
+
 from datetime import date
 from django.contrib import messages
 from django.contrib.auth import login, authenticate
 from django.contrib.auth import logout as auth_logout
+from django.contrib.auth.forms import AuthenticationForm
 from django.core.checks import messages
 from django.shortcuts import render, redirect
 from django.urls import reverse
-from .models import Company
 from edstaff.models import *
 
 
 def home(request):
-    return render(request, 'edstaff/basic.html')
+    return render(request, 'edstaff/home.html')
 
 
 
@@ -23,9 +23,7 @@ def user_signup(request):
         last_name = request.POST['last_name']
         password1 = request.POST['password1']
         password2 = request.POST['password2']
-        phone = request.POST['phone']
-        gender = request.POST['gender']
-        image = request.FILES['image']
+
 
         if password1 != password2:
             messages.error(request, "Passwords do not match.")
@@ -33,26 +31,27 @@ def user_signup(request):
 
         user = User.objects.create_user(first_name=first_name, last_name=last_name, username=username,
                                         password=password1)
-        applicants = Applicant.objects.create(user=user, phone=phone, gender=gender, image=image, type="applicant")
+        applicants = Applicant.objects.create(user=user,  type="applicant")
         user.save()
         applicants.save()
-        return render(request, "edstaff/user_login.html")
-    return render(request, "edstaff/user_signup.html")
+        return render(request, "registration/user_login.html")
+    return render(request, "registration/user_signup.html")
 
 
 def login_view(request):
     if request.method == 'POST':
-        # Handle the login logic here
-        form = django.contrib.auth.forms.AuthenticationForm(request, data=request.POST)
+        form = AuthenticationForm(request, data=request.POST)
         if form.is_valid():
-            # Perform login
-            return redirect("users:login")
+            login(request, form.get_user())
+            return redirect("user_homepage")  # change to your actual success URL
     else:
-        form = django.contrib.auth.forms.AuthenticationForm()
-    return render(request, 'edstaff/login.html', {'form': form})
+        form = AuthenticationForm()
+    return render(request, 'registration/login.html', {'form': form})
 
 def index(request):
     return render(request, 'edstaff/index.html')
+
+
 def user_login(request):
     if request.user.is_authenticated:
         return redirect("/")
@@ -66,47 +65,21 @@ def user_login(request):
                 user1 = Applicant.objects.get(user=user)
                 if user1.type == "applicant":
                     login(request, user)
+                    messages.success(request, "You are now logged in.")
                     return redirect("/user_homepage")
             else:
+
                 thank = True
-                return render(request, "edstaff/user_login.html", {"thank": thank})
-    return render(request, 'edstaff/user_login.html')
+                return render(request, "registration/user_login.html", {"thank": thank})
+    return render(request, 'registration/user_login.html')
 
 
-def user_homepage(request):
-    if not request.user.is_authenticated:
-        return redirect('/user_login/')
-    applicant = Applicant.objects.get(user=request.user)
-    if request.method == "POST":
-        email = request.POST['email']
-        first_name = request.POST['first_name']
-        last_name = request.POST['last_name']
-        phone = request.POST['phone']
-        gender = request.POST['gender']
-
-        applicant.user.email = email
-        applicant.user.first_name = first_name
-        applicant.user.last_name = last_name
-        applicant.phone = phone
-        applicant.gender = gender
-        applicant.save()
-        applicant.user.save()
-
-        try:
-            image = request.FILES['image']
-            applicant.image = image
-            applicant.save()
-        except:
-            pass
-        alert = True
-        return render(request, "edstaff/user_homepage.html", {'alert': alert})
-    return render(request, "edstaff/user_homepage.html", {'applicant': applicant})
 
 
-def logout_view(request):
+def logout(request):
     if request.user.is_authenticated:
         auth_logout(request)  # <- actually logs the user out
-        return redirect('edstaff/index')  # redirect to login or landing page
+        return redirect('edstaff/index')  # redirect to login page or landing page
     else:
         return redirect('edstaff/index')
 
@@ -152,7 +125,7 @@ def job_apply(request, myid):
 def company_signup(request):
     if request.method == "POST":
         username = request.POST['username']
-        email = request.POST.get['email']
+        email = request.POST.get ('email')
         first_name = request.POST['first_name']
         last_name = request.POST['last_name']
         password1 = request.POST['password1']
@@ -173,8 +146,8 @@ def company_signup(request):
                                          type="company", status="pending")
         user.save()
         company.save()
-        return render(request, "edstaff/company_login.html")
-    return render(request, "edstaff/company_signup.html")
+        return render(request, "registration/company_login.html")
+    return render(request, "registration/company_signup.html")
 
 
 def company_login(request):
@@ -183,21 +156,26 @@ def company_login(request):
             password = request.POST['password']
             user = authenticate(username=username, password=password)
 
-            if user:
+            if user is not None:
                 company = Company.objects.filter(user=user).first()
+
                 if company and company.type == "company":
+                    login(request, user)
                     if company.status == Company.STATUS_APPROVED:
                         login(request, user)
                         messages.success(request, "Successfully logged in.")
                         return redirect("/company_homepage")
                     else:
-                        messages.warning(request, "Your account is still pending approval.")
+                        return render(request, "registration/company_login.html", {
+                            "error": "This account is not registered as a company."
+                        })
                 else:
-                    messages.error(request, "Invalid company account.")
-            else:
-                messages.error(request, "Invalid username or password.")
 
-        return render(request, "edstaff/company_login.html")
+                    return render(request, "registration/company_login.html", {
+                        "error": "Invalid username or password."
+                    })
+
+        return render(request, "registration/company_login.html")
 
 
 def company_homepage(request):
@@ -324,8 +302,8 @@ def admin_login(request):
             return redirect("/all_companies")
         else:
             alert = True
-            return render(request, "edstaff/admin_login.html", {"alert": alert})
-    return render(request, "edstaff/admin_login.html")
+            return render(request, "registration/admin_login.html", {"alert": alert})
+    return render(request, "registration/admin_login.html")
 
 def view_applicants(request):
     if not request.user.is_authenticated:
@@ -389,4 +367,31 @@ def delete_company(request, myid):
     company.delete()
     return redirect("/all_companies")
 
+
+def user_homepage(request):
+    return None
+
+
+def signup(request):
+        if request.method == "POST":
+            username = request.POST['email']
+            first_name = request.POST['first_name']
+            last_name = request.POST['last_name']
+            password1 = request.POST['password1']
+            password2 = request.POST['password2']
+            phone = request.POST['phone']
+            gender = request.POST['gender']
+            image = request.FILES['image']
+
+            if password1 != password2:
+                messages.error(request, "Passwords do not match.")
+                return redirect('/signup')
+
+            user = User.objects.create_user(first_name=first_name, last_name=last_name, username=username,
+                                            password=password1)
+            applicants = Applicant.objects.create(user=user, phone=phone, gender=gender, image=image, type="applicant")
+            user.save()
+            applicants.save()
+            return render(request, "registration/user_login.html", {'alert': True})
+        return render(request, "registration/signup.html")
 
