@@ -13,75 +13,39 @@ from edstaff.models import *
 def home(request):
     return render(request, 'edstaff/home.html')
 
+def user_login(request):
+        if request.user.is_authenticated:
+            return redirect("/user_signup")
+        else:
+            if request.method == "POST":
+                username = request.POST['username']
+                password = request.POST['password']
+                user = authenticate(username=username, password=password)
+
+                if user is not None:
+                    user1 = Applicant.objects.get(user=user)
+                    if user1.type == "applicant":
+                        login(request, user)
+                        return redirect("/user_homepage")
+                else:
+                    thank = True
+                    return render(request, "registration/user_login.html", {"thank": thank})
+        return render(request, "registration/user_signup.html")
 
 
 
-def user_signup(request):
-    if request.method == "POST":
-        username = request.POST['email']
-        first_name = request.POST['first_name']
-        last_name = request.POST['last_name']
-        password1 = request.POST['password1']
-        password2 = request.POST['password2']
-
-
-        if password1 != password2:
-            messages.error(request, "Passwords do not match.")
-            return redirect('/user_signup')
-
-        user = User.objects.create_user(first_name=first_name, last_name=last_name, username=username,
-                                        password=password1)
-        applicants = Applicant.objects.create(user=user,  type="applicant")
-        user.save()
-        applicants.save()
-        return render(request, "registration/user_login.html")
-    return render(request, "registration/user_signup.html")
-
-
-def login_view(request):
-    if request.method == 'POST':
-        form = AuthenticationForm(request, data=request.POST)
-        if form.is_valid():
-            login(request, form.get_user())
-            return redirect("user_homepage")  # change to your actual success URL
-    else:
-        form = AuthenticationForm()
-    return render(request, 'registration/login.html', {'form': form})
 
 def index(request):
     return render(request, 'edstaff/index.html')
-
-
-def user_login(request):
-    if request.user.is_authenticated:
-        return redirect("/")
-    else:
-        if request.method == "POST":
-            username = request.POST['username']
-            password = request.POST['password']
-            user = authenticate(username=username, password=password)
-
-            if user is not None:
-                user1 = Applicant.objects.get(user=user)
-                if user1.type == "applicant":
-                    login(request, user)
-                    messages.success(request, "You are now logged in.")
-                    return redirect("/user_homepage")
-            else:
-
-                thank = True
-                return render(request, "registration/user_login.html", {"thank": thank})
-    return render(request, 'registration/user_login.html')
-
 
 
 
 def logout(request):
     if request.user.is_authenticated:
         auth_logout(request)  # <- actually logs the user out
-        return redirect('edstaff/index')  # redirect to login page or landing page
+        return redirect('/index')  # redirect to login page or landing page
     else:
-        return redirect('edstaff/index')
+        return redirect('/index')
 
 
 
@@ -372,7 +336,7 @@ def user_homepage(request):
     return None
 
 
-def signup(request):
+def user_signup(request):
         if request.method == "POST":
             username = request.POST['email']
             first_name = request.POST['first_name']
@@ -393,5 +357,34 @@ def signup(request):
             user.save()
             applicants.save()
             return render(request, "registration/user_login.html", {'alert': True})
-        return render(request, "registration/signup.html")
+        return render(request, "registration/user_signup.html")
+
+
+def admin_homepage(request):
+    return None
+
+
+def admin_signup(request):
+    if request.method == "POST":
+        username = request.POST['email']
+        first_name = request.POST['first_name']
+        last_name = request.POST['last_name']
+        password1 = request.POST['password1']
+        password2 = request.POST['password2']
+        phone = request.POST['phone']
+        gender = request.POST['gender']
+        image = request.FILES['image']
+
+        if password1 != password2:
+            messages.error(request, "Passwords do not match.")
+            return redirect('/signup')
+        user = User.objects.create_user(first_name=first_name, last_name=last_name, username=username,
+                                        password=password1)
+        applicants = Applicant.objects.create(user=user, phone=phone, gender=gender, image=image, type="applicant")
+        user.save()
+        applicants.save()
+        return render(request, "registration/admin_login.html")
+    return render(request, "registration/admin_signup.html")
+
+
 

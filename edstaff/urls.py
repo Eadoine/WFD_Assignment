@@ -5,7 +5,7 @@ urlpatterns = [
     path("", views.index, name="index"),
     # User
     path("user_login/", views.user_login, name="user_login"),
-    path("signup/", views.signup, name="signup"),
+    path("user_signup/", views.user_signup, name="user_signup"),
     path("user_homepage/", views.user_homepage, name="user_homepage"),
     path("logout/", views.logout, name="logout"),
     path("all_jobs/", views.all_jobs, name="all_jobs"),
@@ -32,4 +32,6 @@ urlpatterns = [
     path("all_companies/", views.all_companies, name="all_companies"),
     path("change_status/<int:myid>/", views.change_status, name="change_status"),
     path("delete_company/<int:myid>/", views.delete_company, name="delete_company"),
+    path ("admin_homepage/", views.admin_homepage, name="admin_homepage"),
+    path("admin_signup/", views.admin_signup, name="admin_signup"),
 ]
